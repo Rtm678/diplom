@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KKT_Music</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+<!-- ГЛАВНЫЙ ЭКРАН -->
+<div id="homeScreen">
+  <div style="max-width:360px;margin:60px auto 0;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:22px;font-weight:700;">&#9835; KKT_Music</div>
+      <div class="muted" style="margin-top:4px;">Войдите, чтобы слушать музыку</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Вход в аккаунт</div>
+      <input type="text" id="loginName" placeholder="Логин">
+      <input type="password" id="loginPass" placeholder="Пароль">
+      <div class="row">
+        <button class="btn-accent" id="loginBtn" style="flex:1;">Войти</button>
+        <button class="btn" id="registerBtn" style="flex:1;">Регистрация</button>
+      </div>
+      <div class="msg-err" id="authMsg"></div>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn-ghost" id="guestEnterBtn">Продолжить без регистрации</button>
+    </div>
+  </div>
+</div>
+
+<!-- ОСНОВНОЙ ЭКРАН -->
+<div id="playerScreen" class="hidden">
+  <div class="header">
+    <div class="header-logo">&#9835; <span>Музыка</span></div>
+    <div class="header-right">
+      <span id="greetUsername" style="font-weight:600;color:var(--text);"></span>
+      <button class="btn-ghost" id="themeToggleBtn">&#9788;</button>
+      <button class="btn-danger" id="logoutBtn">Выйти</button>
+    </div>
+  </div>
+
+  <div class="player">
+    <div class="player-top">
+      <div class="player-cover">&#9835;</div>
+      <div class="player-meta">
+        <div class="player-title" id="currentTrackName">Выберите трек</div>
+        <div class="player-artist" id="currentArtistName">—</div>
+      </div>
+    </div>
+    <div class="progress-wrap" id="progressArea">
+      <div class="progress-bg"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="time-row"><span id="currentTimeLabel">0:00</span><span id="durationLabel">0:00</span></div>
+    </div>
+    <div class="controls">
+      <button class="ctrl" id="prevBtn">&#9664;&#9664;</button>
+      <button class="ctrl play" id="playPauseBtn">&#9654;</button>
+      <button class="ctrl" id="nextBtn">&#9654;&#9654;</button>
+      <button class="ctrl" id="loopBtn" title="Повтор">&#8635;</button>
+      <button class="ctrl" id="shuffleBtn" title="Перемешать">&#8646;</button>
+      <div class="vol-row" style="margin:0;margin-left:auto;">
+        <span>&#128266;</span>
+        <input type="range" id="volumeSlider" min="0" max="100" value="70">
+      </div>
+    </div>
+  </div>
+
+  <div class="stats" id="statsBlock">
+    <div class="stat-item"><b id="statPlays">—</b>прослушиваний</div>
+    <div class="stat-item"><b id="statTracks">—</b>треков</div>
+    <div class="stat-item"><b id="statUsers">—</b>пользователей</div>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="searchField" placeholder="Поиск по треку или исполнителю...">
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabTracks">Треки</button>
+    <button class="tab" id="tabAlbums">Альбомы</button>
+    <button class="tab" id="tabPlaylists">Плейлисты</button>
+  </div>
+
+  <div id="dynamicContent" class="track-list"></div>
+</div>
+
+<!-- ГОСТЕВОЙ ЭКРАН -->
+<div id="guestScreen" class="hidden">
+  <div class="header">
+    <div class="header-logo">&#9835; <span>Музыка</span></div>
+    <div class="header-right">
+      <span class="muted">Гостевой режим</span>
+      <button class="btn-ghost" id="themeToggleBtnGuest">&#9788;</button>
+      <button class="btn-ghost" id="exitGuestBtn">На главную</button>
+    </div>
+  </div>
+
+  <div class="locked-box">
+    <div style="font-size:28px;margin-bottom:8px;">&#128274;</div>
+    <div style="margin-bottom:12px;">Воспроизведение доступно только авторизованным пользователям</div>
+    <button class="btn-accent" id="backToHomeGuest">Войти в аккаунт</button>
+  </div>
+
+  <div class="stats" id="guestStats">
+    <div class="stat-item"><b id="gStatPlays">—</b>прослушиваний</div>
+    <div class="stat-item"><b id="gStatTracks">—</b>треков</div>
+    <div class="stat-item"><b id="gStatUsers">—</b>пользователей</div>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="guestSearchField" placeholder="Поиск...">
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="guestTabTracks">Треки</button>
+    <button class="tab" id="guestTabAlbums">Альбомы</button>
+  </div>
+
+  <div id="guestDynamicContent" class="track-list"></div>
+</div>
+
+</div>
+
+<script>
+let albums = [
+  {id:1,name:"Lofi Nights",artist:"Study Beats",year:2023},
+  {id:2,name:"Synthwave Dreams",artist:"Neon Drifter",year:2022},
+  {id:3,name:"Acoustic Sessions",artist:"Guitar Mood",year:2024},
+  {id:4,name:"Electronic Universe",artist:"Quantum Beats",year:2023}
+];
+let allSongs = [
+  {id:1, name:"Lofi Chill",       artist:"Study Beats",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:24},
+  {id:2, name:"Midnight Coffee",  artist:"Study Beats",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:18},
+  {id:3, name:"Rainy Day",        artist:"Study Beats",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:31},
+  {id:4, name:"Neon Drive",       artist:"Neon Drifter",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:47},
+  {id:5, name:"Retro Wave",       artist:"Neon Drifter",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:29},
+  {id:6, name:"Cyberpunk Sunset", artist:"Neon Drifter",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:53},
+  {id:7, name:"Fingerstyle",      artist:"Guitar Mood",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:12},
+  {id:8, name:"Mountain Melody",  artist:"Guitar Mood",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:9},
+  {id:9, name:"Ocean Breeze",     artist:"Guitar Mood",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:14},
+  {id:10,name:"Galactic Pulse",   artist:"Quantum Beats", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:66},
+  {id:11,name:"Deep Space",       artist:"Quantum Beats", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:42},
+  {id:12,name:"Nebula",           artist:"Quantum Beats", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:37}
+];
+
+let userPlaylists=[], currentUserId=null, currentUserLogin=null;
+let userFavorites=[], currentTab='tracks', searchQuery='';
+let currentDisplaySongs=[...allSongs], currentTrackIndex=0;
+let audio=new Audio(), isPlaying=false, isLoop=false, isShuffle=false;
+let guestCurrentTab='tracks';
+
+// DOM
+const homeScreen=document.getElementById('homeScreen');
+const playerScreen=document.getElementById('playerScreen');
+const guestScreen=document.getElementById('guestScreen');
+const loginName=document.getElementById('loginName');
+const loginPass=document.getElementById('loginPass');
+const authMsgDiv=document.getElementById('authMsg');
+const greetUsername=document.getElementById('greetUsername');
+const searchField=document.getElementById('searchField');
+const guestSearchField=document.getElementById('guestSearchField');
+const dynamicContent=document.getElementById('dynamicContent');
+const guestDynamicContent=document.getElementById('guestDynamicContent');
+const currentTrackNameSpan=document.getElementById('currentTrackName');
+const currentArtistNameSpan=document.getElementById('currentArtistName');
+const playPauseBtn=document.getElementById('playPauseBtn');
+const prevBtn=document.getElementById('prevBtn');
+const nextBtn=document.getElementById('nextBtn');
+const progressArea=document.getElementById('progressArea');
+const progressFill=document.getElementById('progressFill');
+const currentTimeLabel=document.getElementById('currentTimeLabel');
+const durationLabel=document.getElementById('durationLabel');
+const volumeSlider=document.getElementById('volumeSlider');
+const loopBtn=document.getElementById('loopBtn');
+const shuffleBtn=document.getElementById('shuffleBtn');
+const tabTracks=document.getElementById('tabTracks');
+const tabAlbums=document.getElementById('tabAlbums');
+const tabPlaylists=document.getElementById('tabPlaylists');
+const guestTabTracks=document.getElementById('guestTabTracks');
+const guestTabAlbums=document.getElementById('guestTabAlbums');
+
+// хранилище
+function initData(){
+  let ss=localStorage.getItem('music_songs');
+  if(!ss||JSON.parse(ss).length<8){
+    localStorage.setItem('music_albums',JSON.stringify(albums));
+    localStorage.setItem('music_songs',JSON.stringify(allSongs));
+  } else {
+    albums=JSON.parse(localStorage.getItem('music_albums'));
+    allSongs=JSON.parse(ss);
+  }
+  currentDisplaySongs=[...allSongs];
+}
+function saveSongs(){localStorage.setItem('music_songs',JSON.stringify(allSongs));}
+function getUsers(){let u=localStorage.getItem('app_users_list');return u?JSON.parse(u):[];}
+function saveUsers(u){localStorage.setItem('app_users_list',JSON.stringify(u));}
+function getFavorites(uid){let f=localStorage.getItem('fav_'+uid);return f?JSON.parse(f):[];}
+function saveFavorites(uid,f){localStorage.setItem('fav_'+uid,JSON.stringify(f));}
+function getUserPlaylists(uid){let p=localStorage.getItem('playlists_'+uid);return p?JSON.parse(p):[];}
+function saveUserPlaylists(uid,p){localStorage.setItem('playlists_'+uid,JSON.stringify(p));}
+
+function esc(s){if(!s)return'';return s.replace(/[&<>]/g,m=>m==='&'?'&amp;':m==='<'?'&lt;':'&gt;');}
+function fmt(sec){if(!sec||isNaN(sec))return'0:00';let m=Math.floor(sec/60),s=Math.floor(sec%60);return m+':'+(s<10?'0'+s:s);}
+function showToast(msg){let t=document.createElement('div');t.className='toast';t.innerText=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000);}
+
+function updateSongPlays(id){
+  let s=allSongs.find(x=>x.id==id);
+  if(s){s.plays++;saveSongs();updateStats();renderCurrentView();}
+}
+function updateStats(){
+  let total=allSongs.reduce((s,x)=>s+x.plays,0);
+  let users=getUsers().length;
+  let sp=document.getElementById('statPlays'),st=document.getElementById('statTracks'),su=document.getElementById('statUsers');
+  let gp=document.getElementById('gStatPlays'),gt=document.getElementById('gStatTracks'),gu=document.getElementById('gStatUsers');
+  if(sp)sp.innerText=total; if(st)st.innerText=allSongs.length; if(su)su.innerText=users;
+  if(gp)gp.innerText=total; if(gt)gt.innerText=allSongs.length; if(gu)gu.innerText=users;
+}
+</script>
+
+<script>
+// рендер треков
+function renderTracks(){
+  let songs=allSongs.filter(s=>{
+    if(!searchQuery.trim())return true;
+    let q=searchQuery.toLowerCase();
+    return s.name.toLowerCase().includes(q)||s.artist.toLowerCase().includes(q);
+  });
+  currentDisplaySongs=songs;
+  dynamicContent.innerHTML='';
+  if(!songs.length){dynamicContent.innerHTML='<div class="muted" style="padding:12px;">Ничего не найдено</div>';return;}
+  songs.forEach((song,idx)=>{
+    let isFav=userFavorites.includes(song.id);
+    let row=document.createElement('div');
+    row.className='track-row'+(idx===currentTrackIndex&&currentTab==='tracks'?' active':'');
+    row.innerHTML=
+      '<div class="track-num">'+(idx+1)+'</div>'+
+      '<div class="track-info">'+
+        '<div class="track-name">'+esc(song.name)+'</div>'+
+        '<div class="track-artist-sm">'+esc(song.artist)+'</div>'+
+      '</div>'+
+      '<div class="track-plays">'+song.plays+'</div>'+
+      '<div class="track-actions">'+
+        '<button class="fav-btn" data-id="'+song.id+'">'+(isFav?'&#9733;':'&#9734;')+'</button>'+
+        '<button class="add-pl-btn" data-id="'+song.id+'">&#43;</button>'+
+      '</div>';
+    row.querySelector('.fav-btn').addEventListener('click',e=>{e.stopPropagation();toggleFavorite(song.id);});
+    row.querySelector('.add-pl-btn').addEventListener('click',e=>{e.stopPropagation();showAddToPlaylistDialog(song.id);});
+    row.addEventListener('click',()=>{currentTrackIndex=idx;playTrack(song);renderCurrentView();});
+    dynamicContent.appendChild(row);
+  });
+}
+
+// рендер альбомов
+function renderAlbums(){
+  let filtered=albums.filter(a=>{
+    if(!searchQuery.trim())return true;
+    let q=searchQuery.toLowerCase();
+    return a.name.toLowerCase().includes(q)||a.artist.toLowerCase().includes(q);
+  });
+  dynamicContent.innerHTML='';
+  if(!filtered.length){dynamicContent.innerHTML='<div class="muted" style="padding:12px;">Ничего не найдено</div>';return;}
+  filtered.forEach(album=>{
+    let songs=allSongs.filter(s=>s.albumId===album.id);
+    let totalPlays=songs.reduce((s,x)=>s+x.plays,0);
+    let block=document.createElement('div');
+    block.className='album-block';
+    let head=document.createElement('div');
+    head.className='album-head';
+    head.innerHTML=
+      '<div>'+
+        '<div class="album-head-name">'+esc(album.name)+'</div>'+
+        '<div class="album-head-sub">'+esc(album.artist)+' &bull; '+album.year+'</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:6px;">'+
+        '<span class="album-head-meta">'+songs.length+' тр. / '+totalPlays+' прослуш.</span>'+
+        '<span class="album-arrow">&#9660;</span>'+
+      '</div>';
+    let tracksDiv=document.createElement('div');
+    tracksDiv.className='album-tracks';
+    songs.forEach(song=>{
+      let isFav=userFavorites.includes(song.id);
+      let row=document.createElement('div');
+      row.className='track-row';
+      row.innerHTML=
+        '<div class="track-num" style="color:var(--accent);">&#9654;</div>'+
+        '<div class="track-info">'+
+          '<div class="track-name">'+esc(song.name)+'</div>'+
+          '<div class="track-artist-sm">'+esc(song.artist)+'</div>'+
+        '</div>'+
+        '<div class="track-plays">'+song.plays+'</div>'+
+        '<div class="track-actions">'+
+          '<button class="fav-btn" data-id="'+song.id+'">'+(isFav?'&#9733;':'&#9734;')+'</button>'+
+          '<button class="add-pl-btn" data-id="'+song.id+'">&#43;</button>'+
+        '</div>';
+      row.querySelector('.fav-btn').addEventListener('click',e=>{e.stopPropagation();toggleFavorite(song.id);});
+      row.querySelector('.add-pl-btn').addEventListener('click',e=>{e.stopPropagation();showAddToPlaylistDialog(song.id);});
+      row.addEventListener('click',e=>{
+        e.stopPropagation();
+        let gi=allSongs.findIndex(s=>s.id===song.id);
+        currentTrackIndex=gi; playTrack(song); renderCurrentView();
+      });
+      tracksDiv.appendChild(row);
+    });
+    let arrow=head.querySelector('.album-arrow');
+    head.addEventListener('click',()=>{
+      tracksDiv.classList.toggle('open');
+      arrow.style.transform=tracksDiv.classList.contains('open')?'rotate(180deg)':'';
+    });
+    block.appendChild(head); block.appendChild(tracksDiv);
+    dynamicContent.appendChild(block);
+  });
+}
+
+// рендер плейлистов
+function renderPlaylistsList(){
+  userPlaylists=getUserPlaylists(currentUserId);
+  dynamicContent.innerHTML='';
+  let btn=document.createElement('button');
+  btn.className='btn-accent btn-sm';
+  btn.style.marginBottom='12px';
+  btn.innerText='+ Создать плейлист';
+  btn.onclick=createNewPlaylist;
+  dynamicContent.appendChild(btn);
+  if(!userPlaylists.length){
+    let m=document.createElement('div');
+    m.className='muted'; m.style.padding='8px';
+    m.innerText='Плейлистов пока нет';
+    dynamicContent.appendChild(m); return;
+  }
+  let wrap=document.createElement('div');
+  wrap.style.border='1px solid var(--border)';
+  wrap.style.borderRadius='6px';
+  wrap.style.overflow='hidden';
+  userPlaylists.forEach(pl=>{
+    let row=document.createElement('div');
+    row.className='playlist-row';
+    row.innerHTML=
+      '<div>'+
+        '<div class="playlist-name">'+esc(pl.name)+'</div>'+
+        '<div class="playlist-count">'+pl.songIds.length+' треков</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;">'+
+        '<button class="btn-accent btn-sm play-pl">&#9654; Играть</button>'+
+        '<button class="btn-danger btn-sm del-pl">Удалить</button>'+
+      '</div>';
+    row.querySelector('.play-pl').addEventListener('click',e=>{e.stopPropagation();playPlaylist(pl.id);});
+    row.querySelector('.del-pl').addEventListener('click',e=>{e.stopPropagation();deletePlaylist(pl.id);});
+    wrap.appendChild(row);
+  });
+  dynamicContent.appendChild(wrap);
+}
+
+function renderCurrentView(){
+  if(currentTab==='tracks') renderTracks();
+  else if(currentTab==='albums') renderAlbums();
+  else if(currentTab==='playlists') renderPlaylistsList();
+}
+</script>
+
+<script>
+// гостевые рендеры
+function renderGuestTracks(){
+  let songs=allSongs.filter(s=>{
+    if(!searchQuery.trim())return true;
+    let q=searchQuery.toLowerCase();
+    return s.name.toLowerCase().includes(q)||s.artist.toLowerCase().includes(q);
+  });
+  guestDynamicContent.innerHTML='';
+  if(!songs.length){guestDynamicContent.innerHTML='<div class="muted" style="padding:12px;">Ничего не найдено</div>';return;}
+  songs.forEach((song,idx)=>{
+    let row=document.createElement('div');
+    row.className='track-row';
+    row.style.opacity='.7';
+    row.innerHTML=
+      '<div class="track-num">'+(idx+1)+'</div>'+
+      '<div class="track-info">'+
+        '<div class="track-name">'+esc(song.name)+'</div>'+
+        '<div class="track-artist-sm">'+esc(song.artist)+'</div>'+
+      '</div>'+
+      '<div class="track-plays">'+song.plays+'</div>';
+    guestDynamicContent.appendChild(row);
+  });
+}
+function renderGuestAlbums(){
+  let filtered=albums.filter(a=>{
+    if(!searchQuery.trim())return true;
+    let q=searchQuery.toLowerCase();
+    return a.name.toLowerCase().includes(q)||a.artist.toLowerCase().includes(q);
+  });
+  guestDynamicContent.innerHTML='';
+  if(!filtered.length){guestDynamicContent.innerHTML='<div class="muted" style="padding:12px;">Ничего не найдено</div>';return;}
+  filtered.forEach(album=>{
+    let songs=allSongs.filter(s=>s.albumId===album.id);
+    let totalPlays=songs.reduce((s,x)=>s+x.plays,0);
+    let block=document.createElement('div');
+    block.className='album-block';
+    let head=document.createElement('div');
+    head.className='album-head';
+    head.innerHTML=
+      '<div>'+
+        '<div class="album-head-name">'+esc(album.name)+'</div>'+
+        '<div class="album-head-sub">'+esc(album.artist)+' &bull; '+album.year+'</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:6px;">'+
+        '<span class="album-head-meta">'+songs.length+' тр. / '+totalPlays+' прослуш.</span>'+
+        '<span class="album-arrow">&#9660;</span>'+
+      '</div>';
+    let tracksDiv=document.createElement('div');
+    tracksDiv.className='album-tracks';
+    songs.forEach(song=>{
+      let row=document.createElement('div');
+      row.className='track-row';
+      row.style.opacity='.7';
+      row.innerHTML=
+        '<div class="track-num" style="color:var(--accent);">&#9654;</div>'+
+        '<div class="track-info">'+
+          '<div class="track-name">'+esc(song.name)+'</div>'+
+          '<div class="track-artist-sm">'+esc(song.artist)+'</div>'+
+        '</div>'+
+        '<div class="track-plays">'+song.plays+'</div>';
+      tracksDiv.appendChild(row);
+    });
+    let arrow=head.querySelector('.album-arrow');
+    head.addEventListener('click',()=>{
+      tracksDiv.classList.toggle('open');
+      arrow.style.transform=tracksDiv.classList.contains('open')?'rotate(180deg)':'';
+    });
+    block.appendChild(head); block.appendChild(tracksDiv);
+    guestDynamicContent.appendChild(block);
+  });
+}
+function renderGuestView(){
+  if(guestCurrentTab==='tracks') renderGuestTracks();
+  else renderGuestAlbums();
+}
+
+// плейлисты
+function createNewPlaylist(){
+  let name=prompt('Название плейлиста:');
+  if(!name)return;
+  userPlaylists.push({id:Date.now(),name,songIds:[]});
+  saveUserPlaylists(currentUserId,userPlaylists);
+  renderCurrentView(); showToast('Плейлист создан');
+}
+function deletePlaylist(id){
+  if(!confirm('Удалить плейлист?'))return;
+  userPlaylists=userPlaylists.filter(p=>p.id!==id);
+  saveUserPlaylists(currentUserId,userPlaylists);
+  renderCurrentView(); showToast('Плейлист удалён');
+}
+function showAddToPlaylistDialog(songId){
+  if(!currentUserId)return;
+  userPlaylists=getUserPlaylists(currentUserId);
+  if(!userPlaylists.length){if(confirm('Нет плейлистов. Создать?'))createNewPlaylist();return;}
+  let names=userPlaylists.map((p,i)=>(i+1)+'. '+p.name).join('\n');
+  let choice=prompt('Выберите плейлист:\n'+names+'\n\nВведите номер:');
+  let idx=parseInt(choice)-1;
+  if(!isNaN(idx)&&idx>=0&&idx<userPlaylists.length){
+    let pl=userPlaylists[idx];
+    if(!pl.songIds.includes(songId)){pl.songIds.push(songId);saveUserPlaylists(currentUserId,userPlaylists);showToast('Добавлено в «'+pl.name+'»');}
+    else showToast('Уже в плейлисте');
+  }
+}
+function playPlaylist(id){
+  let pl=userPlaylists.find(p=>p.id===id);
+  if(!pl||!pl.songIds.length){showToast('Плейлист пуст');return;}
+  let songs=pl.songIds.map(sid=>allSongs.find(s=>s.id===sid)).filter(Boolean);
+  if(songs.length){currentDisplaySongs=songs;currentTrackIndex=0;playTrack(songs[0]);renderCurrentView();}
+}
+function toggleFavorite(songId){
+  if(!currentUserId)return;
+  let idx=userFavorites.indexOf(songId);
+  if(idx===-1){userFavorites.push(songId);showToast('Добавлено в избранное');}
+  else{userFavorites.splice(idx,1);showToast('Удалено из избранного');}
+  saveFavorites(currentUserId,userFavorites);
+  renderCurrentView();
+}
+
+// плеер
+function playTrack(song){
+  if(!song)return;
+  currentTrackNameSpan.innerText=song.name;
+  currentArtistNameSpan.innerText=song.artist;
+  audio.src=song.src; audio.load();
+  updateSongPlays(song.id);
+  if(isPlaying)audio.play();
+}
+function nextTrack(){
+  let list=currentDisplaySongs;
+  if(!list.length)return;
+  if(isShuffle)currentTrackIndex=Math.floor(Math.random()*list.length);
+  else{currentTrackIndex++;if(currentTrackIndex>=list.length){if(isLoop)currentTrackIndex=0;else return;}}
+  playTrack(list[currentTrackIndex]); renderCurrentView();
+}
+function prevTrack(){
+  let list=currentDisplaySongs;
+  if(!list.length)return;
+  currentTrackIndex--;if(currentTrackIndex<0)currentTrackIndex=list.length-1;
+  playTrack(list[currentTrackIndex]); renderCurrentView();
+}
+function togglePlayPause(){
+  if(!currentUserId)return;
+  if(isPlaying)audio.pause(); else audio.play();
+}
+function updateProgressUI(){
+  if(audio.duration&&!isNaN(audio.duration)){
+    progressFill.style.width=(audio.currentTime/audio.duration*100)+'%';
+    currentTimeLabel.innerText=fmt(audio.currentTime);
+    durationLabel.innerText=fmt(audio.duration);
+  }
+}
+function seekTrack(e){
+  if(!currentUserId)return;
+  let rect=progressArea.getBoundingClientRect();
+  if(audio.duration)audio.currentTime=((e.clientX-rect.left)/rect.width)*audio.duration;
+}
+function toggleLoop(){
+  isLoop=!isLoop;
+  loopBtn.classList.toggle('active-mode',isLoop);
+  showToast(isLoop?'Повтор включён':'Повтор выключен');
+}
+function toggleShuffle(){
+  isShuffle=!isShuffle;
+  shuffleBtn.classList.toggle('active-mode',isShuffle);
+  showToast(isShuffle?'Перемешивание включено':'Перемешивание выключено');
+}
+
+// проверка пароля
+const WEAK_PASSWORDS = new Set([
+  '123','1234','12345','123456','1234567','12345678','123456789','1234567890',
+  'qwerty','qwerty123','password','password1','pass','passwd',
+  'abc','abc123','abcd','abcdef','abcd1234',
+  '111','1111','11111','111111','000000','0000','000',
+  'iloveyou','letmein','welcome','admin','admin123','root','test','test123',
+  'qazwsx','zxcvbn','qwertyuiop','asdfghjkl',
+  'monkey','dragon','master','sunshine','princess','football',
+  'login','user','guest','demo','sample',
+  'пароль','пароль1','привет','йцукен',
+]);
+
+function validatePassword(pass) {
+  if (pass.length < 6)
+    return 'Пароль должен содержать не менее 6 символов';
+  if (WEAK_PASSWORDS.has(pass.toLowerCase()))
+    return 'Пароль слишком простой — придумайте надёжный';
+  if (/^(.)\1+$/.test(pass))
+    return 'Пароль не может состоять из одинаковых символов';
+  return null;
+}
+
+// авторизация
+function register(login,pass){
+  if(!login||!pass){authMsgDiv.innerText='Заполните поля';return;}
+  if(login.length < 3){authMsgDiv.innerText='Логин должен содержать не менее 3 символов';return;}
+  const pwdErr = validatePassword(pass);
+  if(pwdErr){authMsgDiv.innerText=pwdErr;return;}
+  let users=getUsers();
+  if(users.find(u=>u.login===login)){authMsgDiv.innerText='Логин занят';return;}
+  users.push({id:Date.now(),login,password:pass});
+  saveUsers(users);
+  authMsgDiv.style.color='green';
+  authMsgDiv.innerText='Готово — теперь войдите';
+}
+function loginUser(login,pass){
+  let users=getUsers();
+  let user=users.find(u=>u.login===login&&u.password===pass);
+  if(!user){authMsgDiv.style.color='';authMsgDiv.innerText='Неверный логин или пароль';return;}
+  currentUserId=user.id; currentUserLogin=user.login;
+  userFavorites=getFavorites(currentUserId);
+  userPlaylists=getUserPlaylists(currentUserId);
+  localStorage.setItem('music_session',currentUserId);
+  switchToPlayer();
+}
+function logout(){
+  currentUserId=null; currentUserLogin=null; userFavorites=[]; userPlaylists=[];
+  localStorage.removeItem('music_session');
+  audio.pause(); isPlaying=false;
+  switchToHome(); showToast('Вы вышли');
+}
+
+// экраны
+function switchToPlayer(){
+  homeScreen.classList.add('hidden');
+  guestScreen.classList.add('hidden');
+  playerScreen.classList.remove('hidden');
+  greetUsername.innerText=currentUserLogin||'';
+  searchQuery=''; if(searchField)searchField.value='';
+  currentTab='tracks';
+  tabTracks.classList.add('active'); tabAlbums.classList.remove('active'); tabPlaylists.classList.remove('active');
+  renderCurrentView(); updateStats();
+}
+function switchToHome(){
+  homeScreen.classList.remove('hidden');
+  playerScreen.classList.add('hidden');
+  guestScreen.classList.add('hidden');
+  authMsgDiv.innerText=''; loginName.value=''; loginPass.value='';
+}
+function switchToGuest(){
+  homeScreen.classList.add('hidden');
+  playerScreen.classList.add('hidden');
+  guestScreen.classList.remove('hidden');
+  searchQuery=''; if(guestSearchField)guestSearchField.value='';
+  guestCurrentTab='tracks';
+  guestTabTracks.classList.add('active'); guestTabAlbums.classList.remove('active');
+  renderGuestView(); updateStats();
+}
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme_pref',document.body.classList.contains('dark')?'dark':'light');
+}
+function loadTheme(){
+  if(localStorage.getItem('theme_pref')==='dark')document.body.classList.add('dark');
+}
+function restoreSession(){
+  let sid=localStorage.getItem('music_session');
+  if(sid){
+    let user=getUsers().find(u=>u.id==sid);
+    if(user){
+      currentUserId=user.id; currentUserLogin=user.login;
+      userFavorites=getFavorites(currentUserId);
+      userPlaylists=getUserPlaylists(currentUserId);
+      switchToPlayer(); return;
+    }
+  }
+  switchToHome();
+}
+
+// события
+document.getElementById('loginBtn').onclick=()=>loginUser(loginName.value,loginPass.value);
+document.getElementById('registerBtn').onclick=()=>register(loginName.value,loginPass.value);
+document.getElementById('guestEnterBtn').onclick=()=>switchToGuest();
+document.getElementById('logoutBtn').onclick=()=>logout();
+document.getElementById('exitGuestBtn').onclick=()=>switchToHome();
+document.getElementById('backToHomeGuest').onclick=()=>switchToHome();
+document.getElementById('themeToggleBtn').onclick=()=>toggleTheme();
+document.getElementById('themeToggleBtnGuest').onclick=()=>toggleTheme();
+
+tabTracks.onclick=()=>{currentTab='tracks';renderCurrentView();tabTracks.classList.add('active');tabAlbums.classList.remove('active');tabPlaylists.classList.remove('active');};
+tabAlbums.onclick=()=>{currentTab='albums';renderCurrentView();tabAlbums.classList.add('active');tabTracks.classList.remove('active');tabPlaylists.classList.remove('active');};
+tabPlaylists.onclick=()=>{currentTab='playlists';renderCurrentView();tabPlaylists.classList.add('active');tabTracks.classList.remove('active');tabAlbums.classList.remove('active');};
+guestTabTracks.onclick=()=>{guestCurrentTab='tracks';renderGuestView();guestTabTracks.classList.add('active');guestTabAlbums.classList.remove('active');};
+guestTabAlbums.onclick=()=>{guestCurrentTab='albums';renderGuestView();guestTabAlbums.classList.add('active');guestTabTracks.classList.remove('active');};
+
+searchField.oninput=e=>{searchQuery=e.target.value;renderCurrentView();};
+guestSearchField.oninput=e=>{searchQuery=e.target.value;renderGuestView();};
+
+playPauseBtn.onclick=togglePlayPause;
+prevBtn.onclick=prevTrack;
+nextBtn.onclick=nextTrack;
+loopBtn.onclick=toggleLoop;
+shuffleBtn.onclick=toggleShuffle;
+progressArea.addEventListener('click',seekTrack);
+volumeSlider.oninput=()=>{audio.volume=volumeSlider.value/100;};
+
+audio.addEventListener('play',()=>{isPlaying=true;playPauseBtn.innerHTML='&#9646;&#9646;';});
+audio.addEventListener('pause',()=>{isPlaying=false;playPauseBtn.innerHTML='&#9654;';});
+audio.addEventListener('timeupdate',updateProgressUI);
+audio.addEventListener('ended',()=>nextTrack());
+
+loginPass.addEventListener('keydown',e=>{if(e.key==='Enter')loginUser(loginName.value,loginPass.value);});
+
+initData();
+loadTheme();
+restoreSession();
+</script>
+</body>
+</html>
