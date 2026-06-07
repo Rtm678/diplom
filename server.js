@@ -1,5 +1,5 @@
 const express = require('express');
-const sqlite3 = require('@oggynjack/sqlite3').verbose();
+const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 
 const app = express();
@@ -41,11 +41,6 @@ db.run(`
     )
 `);
 
-
-    }
-});
-
-
 const WEAK_PASSWORDS = new Set([
     '123','1234','12345','123456','1234567','12345678','123456789','1234567890',
     'qwerty','qwerty123','password','password1','pass','passwd',
@@ -74,19 +69,16 @@ function validatePassword(password) {
     return null;
 }
 
-
 app.post('/api/register', (req, res) => {
     const { login, password } = req.body;
-    console.log('📝 Регистрация:', login);
+    console.log('Регистрация:', login);
     
     if (!login || !password) {
-        return res.status(400).json({ error: 'Заполни логин и пароль' });
+        return res.status(400).json({ error: 'Заполните логин и пароль' });
     }
-
     if (login.length < 3) {
         return res.status(400).json({ error: 'Логин должен содержать не менее 3 символов' });
     }
-
     const pwdError = validatePassword(password);
     if (pwdError) {
         return res.status(400).json({ error: pwdError });
@@ -97,27 +89,26 @@ app.post('/api/register', (req, res) => {
             if (err.message.includes('UNIQUE')) {
                 return res.status(400).json({ error: 'Логин уже занят' });
             }
-            return res.status(500).json({ error: 'Ошибка БД' });
+            return res.status(500).json({ error: 'Ошибка базы данных' });
         }
-        console.log('✅ Пользователь создан:', login);
-        res.json({ success: true, message: 'Регистрация успешна!' });
+        console.log('Пользователь создан:', login);
+        res.json({ success: true, message: 'Регистрация успешна' });
     });
 });
 
-
 app.post('/api/login', (req, res) => {
     const { login, password } = req.body;
-    console.log('🔑 Вход:', login);
+    console.log('Вход:', login);
     
     db.get(`SELECT * FROM users WHERE login = ? AND password = ?`, [login, password], (err, user) => {
         if (err) {
-            return res.status(500).json({ error: 'Ошибка БД' });
+            return res.status(500).json({ error: 'Ошибка базы данных' });
         }
         if (user) {
-            console.log('✅ Успешно:', login);
+            console.log('Успешный вход:', login);
             res.json({ success: true, login: user.login, userId: user.id });
         } else {
-            console.log('❌ Неверно:', login);
+            console.log('Ошибка входа:', login);
             res.status(401).json({ error: 'Неверный логин или пароль' });
         }
     });
@@ -126,7 +117,7 @@ app.post('/api/login', (req, res) => {
 app.get('/api/songs', (req, res) => {
     db.all(`SELECT * FROM songs ORDER BY plays DESC`, (err, songs) => {
         if (err) {
-            return res.status(500).json({ error: 'Ошибка БД' });
+            return res.status(500).json({ error: 'Ошибка базы данных' });
         }
         res.json({ success: true, songs });
     });
@@ -135,7 +126,7 @@ app.get('/api/songs', (req, res) => {
 app.get('/api/users/count', (req, res) => {
     db.get(`SELECT COUNT(*) as count FROM users`, (err, row) => {
         if (err) {
-            return res.status(500).json({ error: 'Ошибка БД' });
+            return res.status(500).json({ error: 'Ошибка базы данных' });
         }
         res.json({ success: true, count: row.count });
     });
@@ -143,11 +134,11 @@ app.get('/api/users/count', (req, res) => {
 
 app.post('/api/play/:id', (req, res) => {
     const songId = req.params.id;
-    console.log('🎵 Прослушивание трека ID:', songId);
+    console.log('Прослушивание трека:', songId);
     
     db.run(`UPDATE songs SET plays = plays + 1 WHERE id = ?`, [songId], function(err) {
         if (err) {
-            return res.status(500).json({ error: 'Ошибка БД' });
+            return res.status(500).json({ error: 'Ошибка базы данных' });
         }
         db.get(`SELECT plays FROM songs WHERE id = ?`, [songId], (err, row) => {
             res.json({ success: true, plays: row ? row.plays : 0 });
@@ -164,7 +155,7 @@ app.get('/api/favorites/:userId', (req, res) => {
         ORDER BY f.created_at DESC
     `, [userId], (err, favorites) => {
         if (err) {
-            return res.status(500).json({ error: 'Ошибка БД' });
+            return res.status(500).json({ error: 'Ошибка базы данных' });
         }
         res.json({ success: true, favorites });
     });
@@ -172,14 +163,14 @@ app.get('/api/favorites/:userId', (req, res) => {
 
 app.post('/api/favorites', (req, res) => {
     const { userId, songId } = req.body;
-    console.log('⭐ Добавление в избранное:', { userId, songId });
+    console.log('Добавление в избранное:', userId, songId);
     
     db.run(`INSERT INTO favorites (user_id, song_id) VALUES (?, ?)`, [userId, songId], function(err) {
         if (err) {
             if (err.message.includes('UNIQUE')) {
-                return res.status(400).json({ error: 'Уже в избранном' });
+                return res.status(400).json({ error: 'Трек уже в избранном' });
             }
-            return res.status(500).json({ error: 'Ошибка БД' });
+            return res.status(500).json({ error: 'Ошибка базы данных' });
         }
         res.json({ success: true, message: 'Добавлено в избранное' });
     });
@@ -187,11 +178,11 @@ app.post('/api/favorites', (req, res) => {
 
 app.delete('/api/favorites', (req, res) => {
     const { userId, songId } = req.body;
-    console.log('💔 Удаление из избранного:', { userId, songId });
+    console.log('Удаление из избранного:', userId, songId);
     
     db.run(`DELETE FROM favorites WHERE user_id = ? AND song_id = ?`, [userId, songId], function(err) {
         if (err) {
-            return res.status(500).json({ error: 'Ошибка БД' });
+            return res.status(500).json({ error: 'Ошибка базы данных' });
         }
         res.json({ success: true, message: 'Удалено из избранного' });
     });
@@ -201,7 +192,21 @@ app.get('/api/test', (req, res) => {
     res.json({ message: 'OK' });
 });
 
-const PORT = 3000;
+db.get(`SELECT COUNT(*) as count FROM songs`, (err, row) => {
+    if (row && row.count === 0) {
+        const testSongs = [
+            ['Lofi Chill', 'Study Beats', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', 0],
+            ['Электроника', 'Synthwave', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', 0],
+            ['Акустика', 'Guitar Mood', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', 0]
+        ];
+        testSongs.forEach(song => {
+            db.run(`INSERT INTO songs (name, artist, src, plays) VALUES (?, ?, ?, ?)`, song);
+        });
+        console.log('Добавлены тестовые треки');
+    }
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log('\n✅ Сервер запущен на http://localhost:3000\n');
+    console.log(`\n Сервер запущен на порту ${PORT}\n`);
 });
