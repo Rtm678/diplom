@@ -1,5 +1,5 @@
 const express = require('express');
-const sqlite3 = require('@oggynjack/sqlite3').verbose();
+const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 
 const app = express();
@@ -10,7 +10,7 @@ app.use(express.static('public'));
 
 const db = new sqlite3.Database('./database.db');
 
-
+// Таблица пользователей
 db.run(`
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,6 +20,7 @@ db.run(`
     )
 `);
 
+// Таблица песен
 db.run(`
     CREATE TABLE IF NOT EXISTS songs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,6 +31,7 @@ db.run(`
     )
 `);
 
+// Таблица избранного
 db.run(`
     CREATE TABLE IF NOT EXISTS favorites (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,8 +43,6 @@ db.run(`
         UNIQUE(user_id, song_id)
     )
 `);
-    }
-});
 
 const WEAK_PASSWORDS = new Set([
     '123','1234','12345','123456','1234567','12345678','123456789','1234567890',
@@ -72,7 +72,6 @@ function validatePassword(password) {
     return null;
 }
 
-
 app.post('/api/register', (req, res) => {
     const { login, password } = req.body;
     console.log('Регистрация:', login);
@@ -80,11 +79,9 @@ app.post('/api/register', (req, res) => {
     if (!login || !password) {
         return res.status(400).json({ error: 'Заполните логин и пароль' });
     }
-
     if (login.length < 3) {
         return res.status(400).json({ error: 'Логин должен содержать не менее 3 символов' });
     }
-
     const pwdError = validatePassword(password);
     if (pwdError) {
         return res.status(400).json({ error: pwdError });
@@ -101,7 +98,6 @@ app.post('/api/register', (req, res) => {
         res.json({ success: true, message: 'Регистрация успешна' });
     });
 });
-
 
 app.post('/api/login', (req, res) => {
     const { login, password } = req.body;
@@ -121,7 +117,6 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-
 app.get('/api/songs', (req, res) => {
     db.all(`SELECT * FROM songs ORDER BY plays DESC`, (err, songs) => {
         if (err) {
@@ -131,7 +126,6 @@ app.get('/api/songs', (req, res) => {
     });
 });
 
-
 app.get('/api/users/count', (req, res) => {
     db.get(`SELECT COUNT(*) as count FROM users`, (err, row) => {
         if (err) {
@@ -140,7 +134,6 @@ app.get('/api/users/count', (req, res) => {
         res.json({ success: true, count: row.count });
     });
 });
-
 
 app.post('/api/play/:id', (req, res) => {
     const songId = req.params.id;
@@ -155,7 +148,6 @@ app.post('/api/play/:id', (req, res) => {
         });
     });
 });
-
 
 app.get('/api/favorites/:userId', (req, res) => {
     const userId = req.params.userId;
@@ -172,7 +164,6 @@ app.get('/api/favorites/:userId', (req, res) => {
     });
 });
 
-
 app.post('/api/favorites', (req, res) => {
     const { userId, songId } = req.body;
     console.log('Добавление в избранное:', userId, songId);
@@ -188,7 +179,6 @@ app.post('/api/favorites', (req, res) => {
     });
 });
 
-
 app.delete('/api/favorites', (req, res) => {
     const { userId, songId } = req.body;
     console.log('Удаление из избранного:', userId, songId);
@@ -201,12 +191,26 @@ app.delete('/api/favorites', (req, res) => {
     });
 });
 
-
 app.get('/api/test', (req, res) => {
     res.json({ message: 'OK' });
 });
 
-const PORT = 3000;
+// Добавление тестовых треков, если таблица песен пуста
+db.get(`SELECT COUNT(*) as count FROM songs`, (err, row) => {
+    if (row && row.count === 0) {
+        const testSongs = [
+            ['Lofi Chill', 'Study Beats', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', 0],
+            ['Электроника', 'Synthwave', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', 0],
+            ['Акустика', 'Guitar Mood', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', 0]
+        ];
+        testSongs.forEach(song => {
+            db.run(`INSERT INTO songs (name, artist, src, plays) VALUES (?, ?, ?, ?)`, song);
+        });
+        console.log('Добавлены тестовые треки');
+    }
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`\nСервер запущен на http://localhost:${PORT}\n`);
+    console.log(`\n✅ Сервер запущен на порту ${PORT}\n`);
 });
