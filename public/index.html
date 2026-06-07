@@ -9,7 +9,7 @@
 <body>
 <div class="page">
 
-<!-- ГЛАВНЫЙ ЭКРАН -->
+<!-- ГЛАВНЫЙ -->
 <div id="homeScreen">
   <div style="max-width:360px;margin:60px auto 0;">
     <div style="text-align:center;margin-bottom:24px;">
@@ -32,7 +32,7 @@
   </div>
 </div>
 
-<!-- ОСНОВНОЙ ЭКРАН -->
+<!-- ОСНОВА -->
 <div id="playerScreen" class="hidden">
   <div class="header">
     <div class="header-logo">&#9835; <span>Музыка</span></div>
@@ -88,7 +88,7 @@
   <div id="dynamicContent" class="track-list"></div>
 </div>
 
-<!-- ГОСТЕВОЙ ЭКРАН -->
+<!-- ДЛЯ ГОСТЕЙ -->
 <div id="guestScreen" class="hidden">
   <div class="header">
     <div class="header-logo">&#9835; <span>Музыка</span></div>
@@ -154,7 +154,6 @@ let currentDisplaySongs=[...allSongs], currentTrackIndex=0;
 let audio=new Audio(), isPlaying=false, isLoop=false, isShuffle=false;
 let guestCurrentTab='tracks';
 
-// DOM
 const homeScreen=document.getElementById('homeScreen');
 const playerScreen=document.getElementById('playerScreen');
 const guestScreen=document.getElementById('guestScreen');
@@ -184,7 +183,7 @@ const tabPlaylists=document.getElementById('tabPlaylists');
 const guestTabTracks=document.getElementById('guestTabTracks');
 const guestTabAlbums=document.getElementById('guestTabAlbums');
 
-// хранилище
+// хранилище 
 function initData(){
   let ss=localStorage.getItem('music_songs');
   if(!ss||JSON.parse(ss).length<8){
@@ -223,7 +222,7 @@ function updateStats(){
 </script>
 
 <script>
-// рендер треков
+// рендер песен
 function renderTracks(){
   let songs=allSongs.filter(s=>{
     if(!searchQuery.trim())return true;
@@ -316,7 +315,7 @@ function renderAlbums(){
   });
 }
 
-// рендер плейлистов
+// отработка плейлистов
 function renderPlaylistsList(){
   userPlaylists=getUserPlaylists(currentUserId);
   dynamicContent.innerHTML='';
@@ -363,7 +362,7 @@ function renderCurrentView(){
 </script>
 
 <script>
-// гостевые рендеры
+// для гостец
 function renderGuestTracks(){
   let songs=allSongs.filter(s=>{
     if(!searchQuery.trim())return true;
@@ -530,7 +529,7 @@ function toggleShuffle(){
   showToast(isShuffle?'Перемешивание включено':'Перемешивание выключено');
 }
 
-// проверка пароля
+// проверка пароля на тупость
 const WEAK_PASSWORDS = new Set([
   '123','1234','12345','123456','1234567','12345678','123456789','1234567890',
   'qwerty','qwerty123','password','password1','pass','passwd',
@@ -553,7 +552,7 @@ function validatePassword(pass) {
   return null;
 }
 
-// авторизация
+// авторизация юзверя
 function register(login,pass){
   if(!login||!pass){authMsgDiv.innerText='Заполните поля';return;}
   if(login.length < 3){authMsgDiv.innerText='Логин должен содержать не менее 3 символов';return;}
@@ -583,7 +582,7 @@ function logout(){
   switchToHome(); showToast('Вы вышли');
 }
 
-// экраны
+// экраныыыы
 function switchToPlayer(){
   homeScreen.classList.add('hidden');
   guestScreen.classList.add('hidden');
@@ -630,7 +629,7 @@ function restoreSession(){
   switchToHome();
 }
 
-// события
+// события и всякие действия
 document.getElementById('loginBtn').onclick=()=>loginUser(loginName.value,loginPass.value);
 document.getElementById('registerBtn').onclick=()=>register(loginName.value,loginPass.value);
 document.getElementById('guestEnterBtn').onclick=()=>switchToGuest();
