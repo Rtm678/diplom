@@ -198,5 +198,5 @@ app.get('/api/test', (req, res) => {
 
 const PORT = 3000;
 app.listen(PORT, () => {
-    console.log('\n✅ Сервер запущен на http://localhost:3000\n');
+    console.log('\n Сервер запущен на http://localhost:3000\n');
 });
