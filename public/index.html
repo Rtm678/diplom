@@ -127,7 +127,26 @@
 </div>
 
 <script>
-
+let albums = [
+  {id:1,name:"Lofi Nights",artist:"Study Beats",year:2023},
+  {id:2,name:"Synthwave Dreams",artist:"Neon Drifter",year:2022},
+  {id:3,name:"Acoustic Sessions",artist:"Guitar Mood",year:2024},
+  {id:4,name:"Electronic Universe",artist:"Quantum Beats",year:2023}
+];
+let allSongs = [
+  {id:1, name:"Demo 1",       artist:"Study Beats",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:24},
+  {id:2, name:"Demo 2",  artist:"Study Beats",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:18},
+  {id:3, name:"Demo 3",        artist:"Study Beats",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:31},
+  {id:4, name:"Demo 4",       artist:"Neon Drifter",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:47},
+  {id:5, name:"Demo 5",       artist:"Neon Drifter",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:29},
+  {id:6, name:"Demo 6", artist:"Neon Drifter",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:53},
+  {id:7, name:"Demo 7",      artist:"Guitar demo",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:12},
+  {id:8, name:"Demo 8",  artist:"Guitar demo",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:9},
+  {id:9, name:"Demo 9",     artist:"Guitar demo",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:14},
+  {id:10,name:"Demo 10",   artist:"Quantum Beats", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:66},
+  {id:11,name:"Demo 11",       artist:"Quantum Beats", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:42},
+  {id:12,name:"Demo 12",           artist:"Quantum Beats", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:37}
+];
 
 let userPlaylists=[], currentUserId=null, currentUserLogin=null;
 let userFavorites=[], currentTab='tracks', searchQuery='';
