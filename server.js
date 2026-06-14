@@ -41,6 +41,53 @@ db.run(`
     )
 `);
 
+db.run(`
+    CREATE TABLE IF NOT EXISTS playlists (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+`);
+
+db.run(`
+    CREATE TABLE IF NOT EXISTS playlist_songs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        playlist_id INTEGER NOT NULL,
+        song_id INTEGER NOT NULL,
+        added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
+        FOREIGN KEY (song_id) REFERENCES songs(id),
+        UNIQUE(playlist_id, song_id)
+    )
+`);
+
+// Заполняем треки если таблица пустая
+const seedSongs = [
+    {id:1,  name:'Demo 1',  artist:'Study Beats',   src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'},
+    {id:2,  name:'Demo 2',  artist:'Study Beats',   src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'},
+    {id:3,  name:'Demo 3',  artist:'Study Beats',   src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'},
+    {id:4,  name:'Demo 4',  artist:'Neon Drifter',  src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'},
+    {id:5,  name:'Demo 5',  artist:'Neon Drifter',  src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'},
+    {id:6,  name:'Demo 6',  artist:'Neon Drifter',  src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'},
+    {id:7,  name:'Demo 7',  artist:'Guitar Mood',   src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'},
+    {id:8,  name:'Demo 8',  artist:'Guitar Mood',   src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'},
+    {id:9,  name:'Demo 9',  artist:'Guitar Mood',   src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'},
+    {id:10, name:'Demo 10', artist:'Quantum Beats', src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'},
+    {id:11, name:'Demo 11', artist:'Quantum Beats', src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'},
+    {id:12, name:'Demo 12', artist:'Quantum Beats', src:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'},
+];
+
+db.get('SELECT COUNT(*) as cnt FROM songs', (err, row) => {
+    if (!err && row.cnt === 0) {
+        const stmt = db.prepare('INSERT INTO songs (id, name, artist, src, plays) VALUES (?, ?, ?, ?, 0)');
+        seedSongs.forEach(s => stmt.run(s.id, s.name, s.artist, s.src));
+        stmt.finalize();
+        console.log('✅ Треки добавлены в БД');
+    }
+});
+
 const WEAK_PASSWORDS = new Set([
     '123','1234','12345','123456','1234567','12345678','123456789','1234567890',
     'qwerty','qwerty123','password','password1','pass','passwd',
@@ -189,6 +236,62 @@ app.delete('/api/favorites', (req, res) => {
             return res.status(500).json({ error: 'Ошибка БД' });
         }
         res.json({ success: true, message: 'Удалено из избранного' });
+    });
+});
+
+// Плейлисты
+app.get('/api/playlists/:userId', (req, res) => {
+    const userId = req.params.userId;
+    db.all(`SELECT * FROM playlists WHERE user_id = ? ORDER BY created_at DESC`, [userId], (err, playlists) => {
+        if (err) return res.status(500).json({ error: 'Ошибка БД' });
+        // Для каждого плейлиста получаем список треков
+        let done = 0;
+        if (!playlists.length) return res.json({ success: true, playlists: [] });
+        playlists.forEach(pl => {
+            db.all(`SELECT song_id FROM playlist_songs WHERE playlist_id = ? ORDER BY added_at`, [pl.id], (err2, rows) => {
+                pl.songIds = rows ? rows.map(r => r.song_id) : [];
+                done++;
+                if (done === playlists.length) res.json({ success: true, playlists });
+            });
+        });
+    });
+});
+
+app.post('/api/playlists', (req, res) => {
+    const { userId, name } = req.body;
+    if (!userId || !name) return res.status(400).json({ error: 'Не указаны данные' });
+    db.run(`INSERT INTO playlists (user_id, name) VALUES (?, ?)`, [userId, name], function(err) {
+        if (err) return res.status(500).json({ error: 'Ошибка БД' });
+        res.json({ success: true, playlist: { id: this.lastID, name, songIds: [] } });
+    });
+});
+
+app.delete('/api/playlists/:id', (req, res) => {
+    const id = req.params.id;
+    db.run(`DELETE FROM playlist_songs WHERE playlist_id = ?`, [id], err => {
+        if (err) return res.status(500).json({ error: 'Ошибка БД' });
+        db.run(`DELETE FROM playlists WHERE id = ?`, [id], err2 => {
+            if (err2) return res.status(500).json({ error: 'Ошибка БД' });
+            res.json({ success: true });
+        });
+    });
+});
+
+app.post('/api/playlists/:id/songs', (req, res) => {
+    const playlistId = req.params.id;
+    const { songId } = req.body;
+    db.run(`INSERT OR IGNORE INTO playlist_songs (playlist_id, song_id) VALUES (?, ?)`, [playlistId, songId], function(err) {
+        if (err) return res.status(500).json({ error: 'Ошибка БД' });
+        res.json({ success: true });
+    });
+});
+
+app.delete('/api/playlists/:id/songs', (req, res) => {
+    const playlistId = req.params.id;
+    const { songId } = req.body;
+    db.run(`DELETE FROM playlist_songs WHERE playlist_id = ? AND song_id = ?`, [playlistId, songId], err => {
+        if (err) return res.status(500).json({ error: 'Ошибка БД' });
+        res.json({ success: true });
     });
 });
 
