@@ -87,6 +87,9 @@
   <div id="dynamicContent" class="track-list"></div>
 </div>
 
+
+<!-- ДЛЯ ГОСТЕЙ -->
+>>>>>>> 9bee3a38802d216960098dfc6f97951bc9a13ba0
 <div id="guestScreen" class="hidden">
   <div class="header">
     <div class="header-logo">&#9835; <span>Музыка</span></div>
@@ -769,6 +772,87 @@ loginPass.addEventListener('keydown', e=>{ if(e.key==='Enter') loginUser(loginNa
 audio.volume = 0.7;
 loadTheme();
 restoreSession();
+</script>
+
+
+<script>
+// ========== ЗАГРУЗКА ТРЕКОВ ==========
+const uploadModal      = document.getElementById("uploadModal");
+const uploadNameInput  = document.getElementById("uploadName");
+const uploadArtistInput= document.getElementById("uploadArtist");
+const uploadFileInput  = document.getElementById("uploadFileInput");
+const uploadFileLabel  = document.getElementById("uploadFileLabel");
+const uploadFileWrap   = document.getElementById("uploadFileWrap");
+const uploadMsg        = document.getElementById("uploadMsg");
+
+uploadFileInput.addEventListener("change", () => {
+  const file = uploadFileInput.files[0];
+  if (file) {
+    uploadFileLabel.innerText = file.name;
+    uploadFileWrap.style.borderColor = "var(--accent)";
+    if (!uploadNameInput.value.trim())
+      uploadNameInput.value = file.name.replace(/\.[^.]+$/, "");
+  }
+});
+
+uploadFileWrap.addEventListener("dragover", e => { e.preventDefault(); uploadFileWrap.style.borderColor = "var(--accent)"; });
+uploadFileWrap.addEventListener("dragleave", () => { uploadFileWrap.style.borderColor = ""; });
+uploadFileWrap.addEventListener("drop", e => {
+  e.preventDefault();
+  uploadFileWrap.style.borderColor = "";
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  if (!file.name.match(/\.(mp3|ogg|wav|flac)$/i)) { uploadMsg.innerText = "Только mp3, ogg, wav, flac"; return; }
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  uploadFileInput.files = dt.files;
+  uploadFileLabel.innerText = file.name;
+  if (!uploadNameInput.value.trim()) uploadNameInput.value = file.name.replace(/\.[^.]+$/, "");
+});
+
+function openUploadModal() {
+  uploadNameInput.value = "";
+  uploadArtistInput.value = "";
+  uploadFileInput.value = "";
+  uploadFileLabel.innerText = "Нажмите или перетащите mp3-файл";
+  uploadFileWrap.style.borderColor = "";
+  uploadMsg.innerText = "";
+  uploadModal.classList.remove("hidden");
+  uploadModal.style.display = "flex";
+}
+
+function closeUploadModal() {
+  uploadModal.classList.add("hidden");
+  uploadModal.style.display = "";
+}
+
+document.getElementById("uploadCancelBtn").onclick = closeUploadModal;
+uploadModal.addEventListener("click", e => { if (e.target === uploadModal) closeUploadModal(); });
+
+document.getElementById("uploadSubmitBtn").onclick = async () => {
+  uploadMsg.innerText = "";
+  const file = uploadFileInput.files[0];
+  if (!file) { uploadMsg.innerText = "Выберите файл"; return; }
+  const btn = document.getElementById("uploadSubmitBtn");
+  btn.disabled = true; btn.innerText = "Загружается...";
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("name",   uploadNameInput.value.trim());
+  formData.append("artist", uploadArtistInput.value.trim());
+  try {
+    const r = await fetch("/api/songs/upload", { method: "POST", body: formData });
+    const d = await r.json();
+    if (d.success) {
+      allSongs.push(Object.assign({ albumId: null }, d.song));
+      currentDisplaySongs = [...allSongs];
+      closeUploadModal();
+      showToast("Трек «" + d.song.name + "» загружен");
+      currentTab = "tracks"; setActiveTab(tabTracks);
+      renderCurrentView(); updateStats();
+    } else { uploadMsg.innerText = d.error || "Ошибка загрузки"; }
+  } catch(e) { uploadMsg.innerText = "Ошибка сети"; }
+  finally { btn.disabled = false; btn.innerText = "Загрузить"; }
+};
 </script>
 </body>
 </html>

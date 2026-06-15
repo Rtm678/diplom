@@ -12,8 +12,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@oggynjack/sqlite3": "^15.1.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "@oggynjack/sqlite3": "^15.1.7"
+    "multer": "^2.0.0"
   }
 }
