@@ -9,7 +9,6 @@
 <body>
 <div class="page">
 
-<!-- ГЛАВНЫЙ -->
 <div id="homeScreen">
   <div style="max-width:360px;margin:60px auto 0;">
     <div style="text-align:center;margin-bottom:24px;">
@@ -32,7 +31,6 @@
   </div>
 </div>
 
-<!-- ОСНОВА -->
 <div id="playerScreen" class="hidden">
   <div class="header">
     <div class="header-logo">&#9835; <span>Музыка</span></div>
@@ -89,7 +87,6 @@
   <div id="dynamicContent" class="track-list"></div>
 </div>
 
-<!-- ДЛЯ ГОСТЕЙ -->
 <div id="guestScreen" class="hidden">
   <div class="header">
     <div class="header-logo">&#9835; <span>Музыка</span></div>
@@ -128,37 +125,37 @@
 </div>
 
 <script>
-// ========== ДАННЫЕ ==========
+// данные музыки
 let albums = [
-  {id:1, name:"Lofi Nights",        artist:"Study Beats",  year:2023},
-  {id:2, name:"Synthwave Dreams",   artist:"Neon Drifter", year:2022},
-  {id:3, name:"Acoustic Sessions",  artist:"Guitar Mood",  year:2024},
-  {id:4, name:"Electronic Universe",artist:"Quantum Beats",year:2023}
+  {id:1, name:"kkt beats",        artist:"Биты",  year:2023},
+  {id:2, name:"belophonk",   artist:"Демо  фонк", year:2022},
+  {id:3, name:"long sessions",  artist:"Фонк",  year:2024},
+  {id:4, name:"Рейв2007",artist:"Биты",year:2023}
 ];
 let allSongs = [
-  {id:1, name:"Demo 1",  artist:"Study Beats",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:0},
-  {id:2, name:"Demo 2",  artist:"Study Beats",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:0},
-  {id:3, name:"Demo 3",  artist:"Study Beats",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:0},
-  {id:4, name:"Demo 4",  artist:"Neon Drifter",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:0},
-  {id:5, name:"Demo 5",  artist:"Neon Drifter",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:0},
-  {id:6, name:"Demo 6",  artist:"Neon Drifter",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:0},
-  {id:7, name:"Demo 7",  artist:"Guitar Mood",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:0},
-  {id:8, name:"Demo 8",  artist:"Guitar Mood",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:0},
-  {id:9, name:"Demo 9",  artist:"Guitar Mood",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:0},
-  {id:10,name:"Demo 10", artist:"Quantum Beats", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:0},
-  {id:11,name:"Demo 11", artist:"Quantum Beats", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:0},
-  {id:12,name:"Demo 12", artist:"Quantum Beats", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:0}
+  {id:1, name:"Demo music",  artist:"Биты",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:0},
+  {id:2, name:"Demo music beats pro",  artist:"Демо фонк",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:0},
+  {id:3, name:"KKT BEL REMIX",  artist:"Демо фонк",   albumId:1, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:0},
+  {id:4, name:"MC Shkolota",  artist:"Демо фонк",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:0},
+  {id:5, name:"Hello beats",  artist:"Демо фонк",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:0},
+  {id:6, name:"Demo Beats pro",  artist:"Демо фонк",  albumId:2, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:0},
+  {id:7, name:"Demo artist",  artist:"Фонк",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:0},
+  {id:8, name:"Demo 8",  artist:"Фонк",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:0},
+  {id:9, name:"Demo 9",  artist:"Фонк",   albumId:3, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:0},
+  {id:10,name:"Demo 10", artist:"Биты", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", plays:0},
+  {id:11,name:"Demo 11", artist:"Фонк", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", plays:0},
+  {id:12,name:"Demo 12", artist:"Биты", albumId:4, src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", plays:0}
 ];
 
 let currentUserId = null, currentUserLogin = null;
-let userFavorites = [];   // массив song_id
+let userFavorites = [];   // song_id
 let userPlaylists = [];   // [{id, name, songIds:[]}]
 let currentTab = 'tracks', searchQuery = '';
 let currentDisplaySongs = [...allSongs], currentTrackIndex = 0;
 let audio = new Audio(), isPlaying = false, isLoop = false, isShuffle = false;
 let guestCurrentTab = 'tracks';
 
-// ========== DOM ==========
+// хоумскрин
 const homeScreen   = document.getElementById('homeScreen');
 const playerScreen = document.getElementById('playerScreen');
 const guestScreen  = document.getElementById('guestScreen');
@@ -189,14 +186,14 @@ const tabPlaylists = document.getElementById('tabPlaylists');
 const guestTabTracks = document.getElementById('guestTabTracks');
 const guestTabAlbums = document.getElementById('guestTabAlbums');
 
-// ========== УТИЛИТЫ ==========
+// прога
 function esc(s){ if(!s)return''; return s.replace(/[&<>]/g,m=>m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
 function fmt(sec){ if(!sec||isNaN(sec))return'0:00'; let m=Math.floor(sec/60),s=Math.floor(sec%60); return m+':'+(s<10?'0'+s:s); }
 function showToast(msg){ let t=document.createElement('div'); t.className='toast'; t.innerText=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
 </script>
 
 <script>
-// ========== API ==========
+// апи
 async function apiGet(url){
   const r = await fetch(url);
   return r.json();
@@ -215,7 +212,6 @@ async function loadSongs(){
   try {
     const data = await apiGet('/api/songs');
     if(data.success && data.songs.length){
-      // Обновляем plays из БД, src и albumId берём из локального списка
       data.songs.forEach(srv => {
         let local = allSongs.find(s => s.id === srv.id);
         if(local){ local.plays = srv.plays; local.name = srv.name; local.artist = srv.artist; }
@@ -265,7 +261,7 @@ async function recordPlay(songId){
 </script>
 
 <script>
-// ========== ИЗБРАННОЕ ==========
+// раздел избранного
 async function toggleFavorite(songId){
   if(!currentUserId) return;
   const isFav = userFavorites.includes(songId);
@@ -289,7 +285,7 @@ async function toggleFavorite(songId){
   renderCurrentView();
 }
 
-// ========== ПЛЕЙЛИСТЫ ==========
+// раздел плейлистов
 async function createNewPlaylist(){
   let name = prompt('Название плейлиста:');
   if(!name || !name.trim()) return;
@@ -347,7 +343,7 @@ function playPlaylist(id){
 </script>
 
 <script>
-// ========== РЕНДЕР ==========
+// отрисовка
 function buildTrackRow(song, idx, isActive, showActions){
   let isFav = userFavorites.includes(song.id);
   let row = document.createElement('div');
@@ -498,7 +494,7 @@ function renderCurrentView(){
 </script>
 
 <script>
-// ========== ГОСТЕВОЙ РЕНДЕР ==========
+// гостевой режим
 function renderGuestTracks(){
   let songs = allSongs.filter(s=>{
     if(!searchQuery.trim()) return true;
@@ -556,7 +552,7 @@ function renderGuestView(){
 </script>
 
 <script>
-// ========== ПЛЕЕР ==========
+// плеер апи
 function playTrack(song){
   if(!song) return;
   currentTrackNameSpan.innerText = song.name;
@@ -619,7 +615,7 @@ audio.addEventListener('ended', ()=>nextTrack());
 </script>
 
 <script>
-// ========== АВТОРИЗАЦИЯ ==========
+// авторизация и запрещенные пароли
 const WEAK_PASSWORDS = new Set([
   '123','1234','12345','123456','1234567','12345678','123456789','1234567890',
   'qwerty','qwerty123','password','password1','pass','passwd',
@@ -680,7 +676,7 @@ function logout(){
 </script>
 
 <script>
-// ========== ЭКРАНЫ ==========
+// табло
 function setActiveTab(tab){
   [tabTracks,tabAlbums,tabFavorites,tabPlaylists].forEach(t=>t.classList.remove('active'));
   tab.classList.add('active');
@@ -739,7 +735,7 @@ async function restoreSession(){
   }
 }
 
-// ========== СОБЫТИЯ ==========
+// события юзверя
 document.getElementById('loginBtn').onclick  = ()=>loginUser(loginName.value, loginPass.value);
 document.getElementById('registerBtn').onclick = ()=>register(loginName.value, loginPass.value);
 document.getElementById('guestEnterBtn').onclick = ()=>switchToGuest();
@@ -769,7 +765,7 @@ progressArea.addEventListener('click', seekTrack);
 volumeSlider.oninput = ()=>{ audio.volume=volumeSlider.value/100; };
 loginPass.addEventListener('keydown', e=>{ if(e.key==='Enter') loginUser(loginName.value,loginPass.value); });
 
-// ========== СТАРТ ==========
+// база
 audio.volume = 0.7;
 loadTheme();
 restoreSession();
